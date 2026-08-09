@@ -1,69 +1,104 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { Users, Briefcase, Cpu, Network, ArrowRight } from 'lucide-react';
+import Loading from '@/components/ui/Loading';
+import ErrorMessage from '@/components/ui/ErrorMessage';
+
+interface Stats {
+  developers: number;
+  projects: number;
+  technologies: number;
+  relationships: number;
+}
+
+export default function Dashboard() {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch('/api/stats');
+      const data = await res.json();
+      if (data.success) {
+        setStats(data.data);
+      } else {
+        setError(data.error);
+      }
+    } catch (err) {
+      setError('Failed to fetch statistics');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  if (loading) return <Loading />;
+  if (error) return <ErrorMessage message={error} onRetry={fetchStats} />;
+
+  const statCards = [
+    { name: 'Total Developers', value: stats?.developers, icon: Users, color: 'bg-blue-500' },
+    { name: 'Total Projects', value: stats?.projects, icon: Briefcase, color: 'bg-green-500' },
+    { name: 'Total Technologies', value: stats?.technologies, icon: Cpu, color: 'bg-purple-500' },
+    { name: 'Relationships', value: stats?.relationships, icon: Network, color: 'bg-indigo-500' },
+  ];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Overview of the DevGraph knowledge network.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {statCards.map((item) => (
+          <div key={item.name} className="overflow-hidden bg-white rounded-lg shadow">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className={`p-3 rounded-md ${item.color}`}>
+                    <item.icon className="w-6 h-6 text-white" aria-hidden="true" />
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">{item.name}</dt>
+                    <dd>
+                      <div className="text-2xl font-semibold text-gray-900">{item.value || 0}</div>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Discover Connections</h2>
+          <p className="text-gray-600 mb-6">
+            Explore how developers, projects, and technologies are interconnected in our graph database. Find recommendations for new skills based on related technologies or discover potential collaborators based on shared projects.
           </p>
+          <div className="space-y-3">
+            <Link href="/graph" className="flex items-center text-indigo-600 hover:text-indigo-800 font-medium">
+              Open Graph Explorer <ArrowRight className="ml-2 w-4 h-4" />
+            </Link>
+            <Link href="/developers" className="flex items-center text-indigo-600 hover:text-indigo-800 font-medium">
+              Browse Developers <ArrowRight className="ml-2 w-4 h-4" />
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
