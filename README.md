@@ -12,7 +12,6 @@ Unlike a traditional relational database dashboard, DevGraph focuses on **discov
 - *How are different technologies clustered around our projects?*
 - *What is the network of collaborators around a particular developer?*
 
-**[🎬 Live Demo](#demo-link)** | **[📖 Documentation](#documentation)** | **[🚀 Deployment Guide](#deployment)**
 
 ---
 
